@@ -1,13 +1,13 @@
 # Análisis Multimodal de Datos COVID-19 en México
 
-Este proyecto integra múltiples fuentes de datos para realizar análisis comprehensivos sobre la pandemia de COVID-19 en México, combinando datos relacionales, series temporales y análisis de sentimientos de redes sociales.
+Este proyecto integra múltiples fuentes de datos para realizar análisis comprehensivos sobre la pandemia de COVID-19 en México, combinando datos relacionales, series temporales y análisis de noticias.
 
 ## Descripción del Proyecto
 
 El proyecto implementa un pipeline de análisis multimodal que integra:
 - **Datos relacionales**: Casos individuales de COVID-19 con información clínica detallada (2020-2023)
 - **Datos de series temporales**: Métricas diarias por entidad federativa
-- **Datos de texto**: Análisis de sentimientos de publicaciones en Twitter/X y noticias
+- **Datos de texto**: Análisis de sentimientos de noticias
 
 ## Fuentes de Datos
 
@@ -28,7 +28,6 @@ El proyecto implementa un pipeline de análisis multimodal que integra:
 - **Sospechosos**: Casos sospechosos diarios por entidad
 
 ### Datos de Texto
-- **Twitter/X**: Publicaciones de redes sociales con análisis de sentimientos
 - **Noticias UNAM Global**: Artículos de noticias extraídos automáticamente (2020-2023)
 - **Período**: 2020-2023 (era COVID-19)
 - **Idiomas**: Principalmente español e inglés
@@ -39,8 +38,8 @@ El proyecto implementa un pipeline de análisis multimodal que integra:
 ### Base de Datos
 - **PostgreSQL 16+** con Apache AGE (Graph Database Extension)
 - **Docker** para contenedorización
-- **SQLAlchemy** para ORM
-- **psycopg2** para conexión directa
+- **SQLAlchemy** para ORM y carga masiva de datos desde pandas DataFrames
+- **psycopg2** para conexión directa, operaciones DDL, y funciones específicas de PostgreSQL (extensiones, grafos AGE)
 
 ### Análisis de Datos
 - **Python 3.10+**
@@ -60,6 +59,27 @@ El proyecto implementa un pipeline de análisis multimodal que integra:
 #### Prerrequisitos
 - Docker y Docker Compose instalados
 - Git
+
+#### Descarga de Datos
+
+**IMPORTANTE**: Los archivos de datos son demasiado grandes para GitHub (>1GB). Debes descargarlos por separado:
+
+1. **Datos Relacionales (COVID-19)**: Descargar desde la fuente oficial
+   - [COVID19MEXICO2020.csv](https://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/historicos/2020/COVID19MEXICO2020.zip) (~620MB)
+   - [COVID19MEXICO2021.csv](https://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/historicos/2021/COVID19MEXICO2021.zip) (~1.4GB)
+   - [COVID19MEXICO2022.csv](https://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/historicos/2022/COVID19MEXICO2022.zip) (~1.0GB)
+   - [COVID19MEXICO2023.csv](https://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/historicos/2023/COVID19MEXICO2023.zip) (~190MB)
+
+2. **Datos de Series Temporales**: Descargar desde la fuente oficial
+   - [Casos Diarios por Estado](https://datos.covid-19.conacyt.mx/#DownZCSV) (CSV files)
+
+3. **Datos de Texto**: Generar automáticamente
+    - [Cobertura coronavirus](https://unamglobal.unam.mx/cobertura-coronavirus/)
+
+   ```bash
+   # Ejecutar script de descarga de noticias
+   python init-scripts/download_covid_news.py
+   ```
 
 #### Pasos de Instalación
 
@@ -199,50 +219,6 @@ WHERE schemaname IN ('relational', 'graph', 'text', 'federation')
 ORDER BY schemaname, tablename;
 "
 ```
-
-### 3. Consultas de Ejemplo
-
-```sql
--- Ver datos unificados
-SELECT * FROM federation.unified_covid_data LIMIT 10;
-
--- Análisis de correlación
-SELECT * FROM federation.comprehensive_correlation 
-WHERE fecha >= '2020-03-01' 
-ORDER BY fecha DESC 
-LIMIT 10;
-
--- Análisis de grafos
-SELECT * FROM cypher('covid_timeseries', $$
-    MATCH (e:entidad)-[r:TIENE_CASOS]->(f:fecha)
-    WHERE f.metrica = 'confirmados' AND r.valor > 1000
-    RETURN e.nombre, f.fecha, r.valor
-    ORDER BY r.valor DESC
-    LIMIT 10
-$$) AS (entidad agtype, fecha agtype, valor agtype);
-```
-
-## Características Principales
-
-### Integración Multimodal Implementada
-- **Relacional-Gráfico**: Integración entre casos individuales y métricas agregadas
-- **Gráfico-Texto**: Análisis de correlación entre sentimientos y números de casos
-- **Vista Unificada**: Esquema canónico para consultas integradas
-- **Dataset de Investigación**: Vista limpia y optimizada para análisis
-
-### Análisis Disponibles
-- Análisis temporal de la pandemia por entidad federativa (2020-2023)
-- Correlación entre sentimientos de redes sociales y métricas de salud
-- Análisis geográfico de la propagación del virus
-- Análisis de correlación entre sentimientos y casos por métrica
-- Integración de datos multi-año con procesamiento optimizado
-
-### Métricas Calculadas
-- Tasas de incidencia por 100,000 habitantes
-- Tasas de letalidad
-- Tasas de positividad de pruebas
-- Análisis de sentimientos agregados por día/ubicación
-- Correlaciones entre sentimientos y métricas de salud
 
 ## Esquema de Base de Datos
 
