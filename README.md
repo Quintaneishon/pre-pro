@@ -62,24 +62,40 @@ El proyecto implementa un pipeline de análisis multimodal que integra:
 
 #### Descarga de Datos
 
-**IMPORTANTE**: Los archivos de datos son demasiado grandes para GitHub (>1GB). Debes descargarlos por separado:
+**IMPORTANTE**: Los archivos de datos son demasiado grandes para GitHub (>1GB). Debes descargarlos por separado desde las fuentes oficiales:
 
-1. **Datos Relacionales (COVID-19)**: Descargar desde la fuente oficial
-   - [COVID19MEXICO2020.csv](https://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/historicos/2020/COVID19MEXICO2020.zip) (~620MB)
-   - [COVID19MEXICO2021.csv](https://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/historicos/2021/COVID19MEXICO2021.zip) (~1.4GB)
-   - [COVID19MEXICO2022.csv](https://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/historicos/2022/COVID19MEXICO2022.zip) (~1.0GB)
-   - [COVID19MEXICO2023.csv](https://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/historicos/2023/COVID19MEXICO2023.zip) (~190MB)
+### 1. 📊 Datos Relacionales (COVID-19) - Secretaría de Salud México
 
-2. **Datos de Series Temporales**: Descargar desde la fuente oficial
-   - [Casos Diarios por Estado](https://datos.covid-19.conacyt.mx/#DownZCSV) (CSV files)
+**Fuente Oficial**: [Datos Abiertos - Dirección General de Epidemiología](https://www.gob.mx/salud/documentos/datos-abiertos-152127)
 
-3. **Datos de Texto**: Generar automáticamente
-    - [Cobertura coronavirus](https://unamglobal.unam.mx/cobertura-coronavirus/)
+**Enlaces de Descarga Directa:**
+   - [COVID19MEXICO2020.csv](https://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/historicos/2020/COVID19MEXICO2020.zip) (~620MB) - 3.8M registros
+   - [COVID19MEXICO2021.csv](https://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/historicos/2021/COVID19MEXICO2021.zip) (~1.4GB) - 8.8M registros  
+   - [COVID19MEXICO2022.csv](https://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/historicos/2022/COVID19MEXICO2022.zip) (~1.0GB) - 6.5M registros
+   - [COVID19MEXICO2023.csv](https://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/historicos/2023/COVID19MEXICO2023.zip) (~190MB) - 1.2M registros
 
-   ```bash
-   # Ejecutar script de descarga de noticias
-   python init-scripts/download_covid_news.py
-   ```
+**Ubicación en el proyecto**: `data/relational/`
+
+### 2. 📈 Datos de Series Temporales - CONACYT
+
+**Fuente Oficial**: [COVID-19 Tablero México - CONACYT](https://datos.covid-19.conacyt.mx/)
+
+**Portal de Descarga**: [Sección de Descargas CSV](https://datos.covid-19.conacyt.mx/#DownZCSV)
+
+**Ubicación en el proyecto**: `data/graph/`
+
+### 3. 📰 Datos de Texto - UNAM Global
+
+**Fuente Oficial**: [UNAM Global - Cobertura Coronavirus](https://unamglobal.unam.mx/cobertura-coronavirus/)
+
+**Extracción Automática de Noticias**:
+
+```bash
+# Ejecutar script de descarga automática (2020-2023)
+python init-scripts/download_covid_news.py
+```
+
+**Ubicación en el proyecto**: `data/text/`
 
 #### Pasos de Instalación
 
@@ -166,29 +182,46 @@ docker-compose ps
 docker stats
 ```
 
-## Scripts de Inicialización
+## 🔧 Scripts de Inicialización
 
 ### Descarga Automática de Noticias (`init-scripts/download_covid_news.py`)
 
-Este script automatiza la extracción de noticias de COVID-19 desde UNAM Global:
+Este script automatiza la extracción completa de noticias de COVID-19 desde UNAM Global:
 
 ```bash
 # Ejecutar desde la raíz del proyecto
 python init-scripts/download_covid_news.py
 ```
 
-**Características:**
-- Extrae noticias de UNAM Global (2020-2023)
-- Procesa automáticamente todos los meses del período
-- Guarda archivos de texto limpios en `data/text/`
-- Maneja errores y reintentos automáticos
-- Genera logs detallados del proceso
+**Características Técnicas:**
+- ✅ Extrae noticias de UNAM Global (enero 2020 - diciembre 2023)
+- ✅ Procesamiento automático de 48 meses de datos
+- ✅ Parsing inteligente de contenido HTML con BeautifulSoup4
+- ✅ Manejo robusto de errores y reintentos automáticos
+- ✅ User-Agent real para evitar bloqueos
+- ✅ Genera logs detallados del proceso con timestamps
+- ✅ Extracción de metadatos (título, autor, fecha, categorías)
+- ✅ Limpieza y estructuración de texto para análisis con LLMs
 
-**Archivos generados:**
-- `data/text/1_2020.txt` hasta `data/text/12_2023.txt`
-- Formato estructurado para procesamiento con LLMs
-- Metadatos incluidos (autor, fecha, categorías)
+**Archivos Generados:**
+- `data/text/1_2020.txt` hasta `data/text/12_2023.txt` (48 archivos)
+- Formato estructurado compatible con procesamiento de LLMs
+- Metadatos incluidos: autor, fecha publicación, categorías temáticas
+- Separadores claros entre artículos para análisis individual
 
+**Ejemplo de Estructura de Archivo Generado:**
+```
+=== ARTÍCULO 1 ===
+Título: [Título del artículo]
+Autor: [Nombre del autor]
+Fecha: [DD de Mes de YYYY]
+Categorías: [Cat1, Cat2, Cat3]
+--- CONTENIDO ---
+[Contenido completo del artículo...]
+
+=== ARTÍCULO 2 ===
+[...]
+```
 
 ## Uso del Sistema
 
@@ -227,12 +260,6 @@ ORDER BY schemaname, tablename;
 - **`graph`**: Datos de series temporales (Apache AGE)
 - **`text`**: Datos de noticias y análisis de texto
 - **`federation`**: Vistas unificadas para análisis
-
-### Vistas Principales
-- **`federation.unified_covid_data`**: Vista unificada de todas las fuentes
-- **`federation.comprehensive_correlation`**: Correlación entre fuentes de datos
-- **`federation.graph_analysis`**: Análisis avanzado de series temporales
-- **`federation.graph_data_extracted`**: Extracción de datos de grafos
 
 ### Logs y Monitoreo
 
