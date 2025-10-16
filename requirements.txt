@@ -1,10 +1,38 @@
-pandas
-openpyxl
-psycopg2-binary
-sqlalchemy
-python-dotenv
-tweepy
-numpy
-requests
-beautifulsoup4
-lxml
+# Core data processing
+pandas>=2.0.0
+numpy>=1.24.0
+openpyxl>=3.1.0
+
+# Database connectivity
+psycopg2-binary>=2.9.0
+sqlalchemy>=2.0.0
+
+# Environment and configuration
+python-dotenv>=1.0.0
+
+# Visualization and plotting
+plotly>=5.0.0
+matplotlib>=3.7.0
+kaleido>=0.2.1
+
+# Graph processing and visualization
+networkx>=3.0
+graphviz>=0.21
+python-graphviz>=0.20
+
+# Database schema visualization
+sqlalchemy-schemadisplay>=0.1.0
+
+# Jupyter notebook support
+jupyter>=1.0.0
+ipywidgets>=8.0.0
+nbformat>=5.0.0
+
+# Web scraping (for news extraction)
+beautifulsoup4>=4.12.0
+requests>=2.31.0
+lxml>=4.9.0
+
+# Additional utilities
+python-dateutil>=2.8.0
+pytz>=2023.3

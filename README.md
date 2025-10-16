@@ -66,170 +66,155 @@ Este proyecto implementa un sistema de integración de datos heterogéneos para 
 - BeautifulSoup4 (extracción de noticias)
 - Plotly (visualizaciones interactivas)
 
+## Estructura del Notebook Principal
 
-## Marco de Evaluación de Calidad de Datos
+El notebook `main_post.ipynb` implementa el siguiente flujo:
 
-El sistema implementa un protocolo de validación exhaustivo basado en seis dimensiones de calidad según las normas ISO 8000 y DAMA-DMBOK:
+### 1. Configuración e Instalación
+- Instalación de dependencias necesarias
+- Configuración de conexiones a PostgreSQL
+- Configuración de extensiones Apache AGE
 
-### 1. Validación de Datos Relacionales
+### 2. Carga e Inspección de Datos
+- Conexión a PostgreSQL y configuración de extensiones
+- Carga de archivos CSV anuales
+- Inspección de catálogos y descriptores
+- Análisis de la información de la base de datos relacional
 
-#### 1.1 Exactitud y Conformidad
-- Validación de conformidad con catálogos oficiales
-- Verificación de tipos de datos
-- Detección de valores fuera de rango
+### 3. Validación de Integridad de Datos
+- Comparación de entidades en catálogo vs entidades con casos COVID
+- Validación del rango de fechas
+- Verificación de consistencia temporal
 
-#### 1.2 Completitud
-- Medición de valores nulos por columna clave
-- Identificación de registros con alta proporción de campos faltantes
-- Evaluación de completitud en campos esenciales
+### 4. Transformación y Carga de Datos
+- Creación de esquemas de base de datos relacional
+- Inserción de información relacional
+- Análisis de información de grafos
+- Transformación y carga de datos de series temporales
+- Validación de nombres de entidades
+- Creación de esquemas de grafos con Apache AGE
 
-#### 1.3 Validez de Dominio
-- Conformidad con catálogos oficiales
-- Integridad referencial con catálogo de entidades
-- Validación de códigos especiales (NO APLICA, SE IGNORA, NO ESPECIFICADO)
+### 5. Perfilado de Datos por Fuente
 
-#### 1.4 Consistencia Temporal
-- Detección de inconsistencias cronológicas
-- Validación lógica de secuencias de eventos
-- Verificación de rangos temporales válidos
+#### 5.1 Fuente Relacional
+- Evaluación de integridad estructural
+- Análisis de completitud por columna clave
+- Validación de dominio y conformidad con catálogos
+- Verificación de consistencia temporal
+- Detección de duplicados y unicidad
+- Validación de integridad referencial
 
-#### 1.5 Unicidad y Duplicados
-- Identificación de duplicados por identificador único
-- Detección de duplicados funcionales Multi-Column Weighted Similarity Score Levenshtein
-- Análisis de redundancia en el dataset
+#### 5.2 Fuente de Grafo
+- Validación de estructura del grafo
+- Verificación de correspondencia semántica
+- Análisis de integridad de valores
+- Evaluación de consistencia temporal
+- Detección de duplicidad de relaciones
 
-#### 1.6 Integridad Referencial
-- Verificación de relaciones entre tablas
-- Coherencia entre variables derivadas
-- Validación de jerarquías geográficas
+#### 5.3 Fuente Textual
+- Validación de parseo estructural
+- Análisis de completitud de metadatos
+- Verificación de validez temporal
+- Normalización lingüística
 
-### 2. Validación de Datos de Grafo (Series Temporales)
+#### 5.4 Vista Federada
+- Evaluación de integridad estructural
+- Validación de consistencia inter-fuente
+- Análisis de completitud federada
+- Verificación de duplicidad y unicidad global
+- Evaluación de coherencia general
 
-#### 2.1 Estructura del Grafo
-- Validación de nodos y aristas
-- Verificación de propiedades obligatorias
-- Consistencia en el esquema del grafo
+### 6. Análisis de Cobertura Representativa
 
-#### 2.2 Correspondencia Semántica
-- Verificación de entidades presentes en catálogo relacional
-- Análisis de diferencias entre fuentes
-- Normalización de identificadores
+#### 6.1 Dimensiones Evaluadas
+- **Cobertura Temporal:** Período completo de análisis, días con datos disponibles, continuidad de series temporales
+- **Cobertura Geográfica:** Representación de entidades federativas, distribución espacial de casos
+- **Cobertura Mediática:** Disponibilidad de noticias por período, correlación temporal con eventos epidemiológicos
+- **Distribución Demográfica:** Representación por sexo, distribución por grupos etarios
 
-#### 2.3 Integridad de Valores
-- Validación de rangos numéricos
-- Detección de valores atípicos
-- Coherencia en las métricas
+#### 6.2 Métricas de Validación
+- Validación geográfica (entidad_id ∈ catálogo)
+- Validación temporal (fecha coincide entre relacional y grafo)
+- Validación semántica (confirmados coherente entre fuentes)
+- Validación textual (correlación noticias vs contagios)
 
-#### 2.4 Consistencia Temporal
-- Análisis de continuidad de fechas
-- Detección de gaps temporales
-- Evaluación de densidad temporal
+### 7. Limpieza de Datos
 
-#### 2.5 Duplicidad de Relaciones
-- Detección de aristas repetidas
-- Validación de unicidad en relaciones
+#### 7.1 Limpieza de Datos Relacionales
+- Creación de tabla de respaldo
+- Aplicación de reglas de limpieza específicas:
+  - Limpieza de fechas con validación de secuencias temporales lógicas
+  - Validación de entidades con códigos válidos
+  - Normalización de variables categóricas
+  - Conversión de códigos especiales a valores nulos
+  - Validación de rangos de edad y consistencia clínica
+- Eliminación de duplicados con criterios estrictos
+- Agregación de flags de calidad
+- Creación de índices optimizados
 
-### 3. Validación de Datos de Texto
-
-#### 3.1 Parseo Estructural
-- Validación de extracción de artículos
-- Análisis de longitud de contenido
-- Detección de errores de delimitación
-
-#### 3.2 Completitud de Metadatos
-- Evaluación de campos obligatorios
-- Análisis de categorización
-- Verificación de metadatos extraídos
-
-#### 3.3 Validez Temporal
-- Validación de rangos de fechas
-- Detección de formatos incorrectos
-- Coherencia con período de estudio
-
-#### 3.4 Normalización Lingüística
-- Validación de codificación de caracteres
-- Unificación de categorías
-- Estandarización de texto
-
-## Pipeline de Limpieza de Datos
-
-### Etapa 1: Limpieza de Datos Relacionales
-
-**Reglas de transformación aplicadas:**
-
-1. **Limpieza de fechas:**
-   - Validación de secuencias temporales lógicas
-   - Eliminación de fechas fuera de rango válido
-
-2. **Validación de entidades:**
-   - Verificación de códigos de entidad válidos
-   - Eliminación de códigos especiales no aplicables
-
-3. **Normalización de variables categóricas:**
-   - Conversión de códigos especiales a valores nulos
-   - Validación de rangos de edad
-   - Aplicación de reglas de negocio específicas
-
-4. **Eliminación de duplicados:**
-   - Detección basada en combinaciones de campos clave
-   - Resolución de registros redundantes
-
-**Métricas de calidad agregadas:**
-- `quality_score`: puntuación basada en completitud de campos esenciales
-- `completeness_pct`: porcentaje de campos poblados
-- `has_death_data`: indicador de información de defunción
-- `has_severe_symptoms`: indicador de casos graves
-
-### Etapa 2: Limpieza de Datos de Texto
-
-**Reglas aplicadas:**
+#### 7.2 Limpieza de Datos de Texto
 - Eliminación de contenido insuficiente
 - Validación de rango temporal
 - Eliminación de duplicados
 - Normalización de metadatos
 
-### Etapa 3: Federación de Datos
+#### 7.3 Recreación de Vistas Federadas
+- Actualización de vistas con datos limpios
+- Generación de métricas de calidad agregadas
 
-**Vista: `federation.unified_covid_data`**
-- Integración de casos individuales con catálogos
-- Columnas organizadas por categorías:
-  - Identificadores
-  - Variables categóricas
-  - Indicadores médicos
-  - Indicadores demográficos
-  - Comorbilidades
-  - Métricas de calidad
+### 8. Visualizaciones y Dashboards
 
-**Vista: `federation.comprehensive_correlation`**
-- Agregación por fecha y entidad
-- Métricas calculadas:
-  - Conteos de casos por tipo
-  - Indicadores demográficos agregados
-  - Resumen de comorbilidades
-  - Métricas de calidad promedio
-  - Integración con datos de noticias
+#### 8.1 Dashboard de Calidad y Cobertura
+- Resumen general de cobertura por criterio
+- Cumplimiento de metas establecidas
+- Distribución demográfica
+- Calidad de datos por fuente
 
-## Análisis de Cobertura Representativa
+#### 8.2 Métricas de Calidad de Datos
+- Dimensiones de calidad (Completitud, Validez, Consistencia)
+- Métricas por fuente de datos
+- Indicadores de integridad
 
-### Dimensiones Evaluadas
-
-#### Cobertura Temporal
-- Período completo de análisis
-- Días con datos disponibles
-- Continuidad de series temporales
-
-#### Cobertura Geográfica
-- Representación de entidades federativas
+#### 8.3 Cobertura Geográfica
+- Mapa de cobertura por estado
 - Distribución espacial de casos
+- Análisis de representatividad territorial
 
-#### Cobertura Mediática
-- Disponibilidad de noticias por período
-- Correlación temporal con eventos epidemiológicos
+#### 8.4 Evolución Temporal
+- Timeline de cobertura temporal
+- Análisis de continuidad de datos
+- Identificación de gaps temporales
 
-#### Distribución Demográfica
-- Representación por sexo
-- Distribución por grupos etarios
-- Comparación con demografía poblacional
+#### 8.5 Comparación de Fuentes
+- Métricas comparativas entre fuentes
+- Análisis de completitud y consistencia
+- Evaluación de cobertura por fuente
+
+### 9. Análisis de Preguntas de Negocio
+
+#### 9.1 Preguntas Descriptivas
+- Evolución del número de casos confirmados por año y estado
+- Proporción de casos confirmados que resultaron en hospitalización
+- Distribución de comorbilidades entre casos positivos
+- Tasa de letalidad por entidad y grupo de edad
+- Análisis de pacientes intubados por año
+- Concentración de casos por sector de salud
+- Distribución de casos en población indígena
+- Casos positivos en mujeres embarazadas
+- Municipios con mayor número de casos por entidad
+- Proporción de resultados positivos en pruebas de laboratorio vs antígeno
+
+#### 9.2 Preguntas Predictivas
+- Probabilidad de requerir UCI según comorbilidades
+- Factores que aumentan el riesgo de defunción
+- Estados con mayor probabilidad de repunte
+- Probabilidad de hospitalización según edad y sexo
+- Características clínicas que predicen necesidad de intubación
+- Probabilidad de hospitalización en pacientes migrantes
+- Factores predictivos de mortalidad en mujeres embarazadas
+- Probabilidad de positividad de pruebas según entidad y fecha
+- Municipios con mayor riesgo de saturación hospitalaria
+- Relación entre sentimientos en redes sociales y repunte de casos
 
 ## Instalación y Configuración
 
@@ -332,34 +317,15 @@ WHERE schemaname IN ('relational', 'graph', 'text', 'federation')
 ORDER BY schemaname, tablename;
 ```
 
-## Estructura del Notebook Principal
+## Resultados y Métricas
 
-El notebook `main_post.ipynb` implementa el siguiente flujo:
+El sistema genera métricas de calidad y cobertura que incluyen:
 
-1. **Carga e Inspección de Datos**
-   - Conexión a PostgreSQL y configuración de extensiones
-   - Carga de archivos CSV anuales
-   - Inspección de catálogos y descriptores
+- **Completitud de datos:** Porcentaje de campos poblados por fuente
+- **Validez de dominio:** Conformidad con catálogos oficiales
+- **Consistencia temporal:** Coherencia en secuencias de fechas
+- **Integridad referencial:** Validación de relaciones entre tablas
+- **Cobertura representativa:** Evaluación de representatividad geográfica, temporal y demográfica
+- **Calidad federada:** Métricas integradas de las tres fuentes de datos
 
-2. **Transformación y Carga**
-   - Creación de tablas relacionales
-   - Construcción del grafo con Apache AGE
-   - Carga de noticias desde archivos de texto
-
-3. **Validación de Calidad de Datos**
-   - Validación de datos relacionales
-   - Validación de datos de grafo
-   - Validación de datos de texto
-
-4. **Análisis de Cobertura**
-   - Cobertura temporal, geográfica y demográfica
-   - Generación de dashboards interactivos
-
-5. **Limpieza de Datos**
-   - Aplicación de reglas de limpieza
-   - Creación de tablas limpias
-   - Agregación de métricas de calidad
-
-6. **Federación de Datos**
-   - Creación de vistas integradas
-   - Reporte final de calidad
+El notebook proporciona visualizaciones interactivas y dashboards que permiten evaluar la calidad de los datos y su adecuación para análisis epidemiológicos y de salud pública.
