@@ -1,105 +1,282 @@
-# Análisis Multimodal de Datos COVID-19 en México
+# Sistema de Integración y Validación Multimodal de Datos COVID-19 en México
 
-Este proyecto integra múltiples fuentes de datos para realizar análisis comprehensivos sobre la pandemia de COVID-19 en México, combinando datos relacionales, series temporales y análisis de noticias.
+## Descripción General
 
-## Descripción del Proyecto
+Este proyecto implementa un sistema de integración de datos heterogéneos para el análisis epidemiológico de COVID-19 en México, combinando tres fuentes de datos complementarias: registros clínicos individuales (datos relacionales), series temporales agregadas por entidad federativa (datos de grafo), y cobertura mediática (datos de texto). El sistema incluye un marco de evaluación de calidad de datos, procesos de limpieza automatizados y estrategias de federación de datos para análisis integrados.
 
-El proyecto implementa un pipeline de análisis multimodal que integra:
-- **Datos relacionales**: Casos individuales de COVID-19 con información clínica detallada (2020-2023)
-- **Datos de series temporales**: Métricas diarias por entidad federativa
-- **Datos de texto**: Análisis de sentimientos de noticias
+## Marco Conceptual
 
-## Fuentes de Datos
+### Fuentes de Datos Integradas
 
-### Datos Relacionales
-- **COVID19MEXICO2020-2023.csv**: Base de datos principal con casos individuales por año
-- **Catálogos**: Diccionarios de datos para variables categóricas (13 hojas de cálculo)
-- **Descriptores**: Documentación detallada de variables y actualizaciones
+#### 1. Datos Relacionales
+**Fuente:** Secretaría de Salud de México - Dirección General de Epidemiología  
+**Período:** 2020-2023  
+**Contenido:** Registros individuales de casos con información clínica, demográfica y temporal
 
-**Actualizaciones importantes:**
-- Se eliminó la variable `RESULTADO_LAB`, reemplazada por `RESULTADO_PCR` y `RESULTADO_PCR_COINFECCION`
-- Se agregó `CLASIFICACION_FINAL_COVID` para identificar casos positivos de COVID-19
-- Se agregó `CLASIFICACION_FINAL_FLU` para identificar casos de influenza
+**Características principales:**
+- Variables clínicas y epidemiológicas
+- Casos confirmados, sospechosos y negativos
+- Información de comorbilidades
+- Desenlaces clínicos (hospitalización, UCI, intubación, defunción)
+- Cobertura: 32 entidades federativas
 
-### Datos de Series Temporales
-- **Confirmados**: Casos confirmados diarios por entidad (32 estados, 1,218 días)
-- **Defunciones**: Defunciones diarias por entidad
-- **Negativos**: Casos negativos diarios por entidad
-- **Sospechosos**: Casos sospechosos diarios por entidad
+**Actualizaciones importantes del esquema:**
+- Eliminación de `RESULTADO_LAB`, reemplazada por `RESULTADO_PCR` y `RESULTADO_PCR_COINFECCION`
+- Adición de `CLASIFICACION_FINAL_COVID` para casos positivos confirmados
+- Adición de `CLASIFICACION_FINAL_FLU` para identificación de influenza
 
-### Datos de Texto
-- **Noticias UNAM Global**: Artículos de noticias extraídos automáticamente (2020-2023)
-- **Período**: 2020-2023 (era COVID-19)
-- **Idiomas**: Principalmente español e inglés
-- **Características**: Sentimientos, ubicación geográfica, entidades nombradas
+#### 2. Datos de Series Temporales (Grafo)
+**Fuente:** CONACYT - COVID-19 Tablero México  
+**Período:** 2020-2023  
+**Contenido:** Series temporales diarias por entidad federativa
 
-## Tecnologías Utilizadas
+**Métricas disponibles:**
+- Casos confirmados diarios
+- Defunciones diarias
+- Casos negativos diarios
+- Casos sospechosos diarios
 
-### Base de Datos
-- **PostgreSQL 16+** con Apache AGE (Graph Database Extension)
-- **Docker** para contenedorización
-- **SQLAlchemy** para ORM y carga masiva de datos desde pandas DataFrames
-- **psycopg2** para conexión directa, operaciones DDL, y funciones específicas de PostgreSQL (extensiones, grafos AGE)
+**Estructura:** Base de datos de grafos (Apache AGE) con nodos de entidad y fecha conectados por relaciones `TIENE_CASOS` con valores métricos.
 
-### Análisis de Datos
-- **Python 3.10+**
-- **Pandas**: Manipulación de datos
-- **NumPy**: Cálculos numéricos
-- **OpenPyXL**: Lectura de archivos Excel
-- **BeautifulSoup4**: Web scraping para noticias
-- **Requests**: Cliente HTTP
+#### 3. Datos de Texto (Noticias)
+**Fuente:** UNAM Global - Cobertura Coronavirus  
+**Período:** 2020-2023  
+**Contenido:** Artículos de cobertura mediática sobre COVID-19
 
-### Visualización y Análisis
-- **Jupyter Notebooks**: Análisis interactivo
-- **Matplotlib/Seaborn**: Visualizaciones
-- **Apache AGE**: Consultas de grafos con Cypher
+**Metadatos extraídos:**
+- Título, autor, fecha de publicación
+- Categorías temáticas
+- Contenido completo en español e inglés
+
+## Arquitectura del Sistema
+
+### Infraestructura Tecnológica
+
+**Base de Datos:**
+- PostgreSQL 16+ con extensión Apache AGE para gestión de grafos
+- Esquemas organizados por tipo de datos (`relational`, `graph`, `text`, `federation`)
+- Contenedorización mediante Docker
+
+**Stack de Análisis:**
+- Python 3.10+
+- SQLAlchemy (ORM para carga masiva)
+- psycopg2 (operaciones DDL y consultas especializadas)
+- Pandas/NumPy (procesamiento de datos)
+- OpenPyXL (lectura de catálogos en Excel)
+- BeautifulSoup4 (extracción de noticias)
+- Plotly (visualizaciones interactivas)
+
+
+## Marco de Evaluación de Calidad de Datos
+
+El sistema implementa un protocolo de validación exhaustivo basado en seis dimensiones de calidad según las normas ISO 8000 y DAMA-DMBOK:
+
+### 1. Validación de Datos Relacionales
+
+#### 1.1 Exactitud y Conformidad
+- Validación de conformidad con catálogos oficiales
+- Verificación de tipos de datos
+- Detección de valores fuera de rango
+
+#### 1.2 Completitud
+- Medición de valores nulos por columna clave
+- Identificación de registros con alta proporción de campos faltantes
+- Evaluación de completitud en campos esenciales
+
+#### 1.3 Validez de Dominio
+- Conformidad con catálogos oficiales
+- Integridad referencial con catálogo de entidades
+- Validación de códigos especiales (NO APLICA, SE IGNORA, NO ESPECIFICADO)
+
+#### 1.4 Consistencia Temporal
+- Detección de inconsistencias cronológicas
+- Validación lógica de secuencias de eventos
+- Verificación de rangos temporales válidos
+
+#### 1.5 Unicidad y Duplicados
+- Identificación de duplicados por identificador único
+- Detección de duplicados funcionales Multi-Column Weighted Similarity Score Levenshtein
+- Análisis de redundancia en el dataset
+
+#### 1.6 Integridad Referencial
+- Verificación de relaciones entre tablas
+- Coherencia entre variables derivadas
+- Validación de jerarquías geográficas
+
+### 2. Validación de Datos de Grafo (Series Temporales)
+
+#### 2.1 Estructura del Grafo
+- Validación de nodos y aristas
+- Verificación de propiedades obligatorias
+- Consistencia en el esquema del grafo
+
+#### 2.2 Correspondencia Semántica
+- Verificación de entidades presentes en catálogo relacional
+- Análisis de diferencias entre fuentes
+- Normalización de identificadores
+
+#### 2.3 Integridad de Valores
+- Validación de rangos numéricos
+- Detección de valores atípicos
+- Coherencia en las métricas
+
+#### 2.4 Consistencia Temporal
+- Análisis de continuidad de fechas
+- Detección de gaps temporales
+- Evaluación de densidad temporal
+
+#### 2.5 Duplicidad de Relaciones
+- Detección de aristas repetidas
+- Validación de unicidad en relaciones
+
+### 3. Validación de Datos de Texto
+
+#### 3.1 Parseo Estructural
+- Validación de extracción de artículos
+- Análisis de longitud de contenido
+- Detección de errores de delimitación
+
+#### 3.2 Completitud de Metadatos
+- Evaluación de campos obligatorios
+- Análisis de categorización
+- Verificación de metadatos extraídos
+
+#### 3.3 Validez Temporal
+- Validación de rangos de fechas
+- Detección de formatos incorrectos
+- Coherencia con período de estudio
+
+#### 3.4 Normalización Lingüística
+- Validación de codificación de caracteres
+- Unificación de categorías
+- Estandarización de texto
+
+## Pipeline de Limpieza de Datos
+
+### Etapa 1: Limpieza de Datos Relacionales
+
+**Reglas de transformación aplicadas:**
+
+1. **Limpieza de fechas:**
+   - Validación de secuencias temporales lógicas
+   - Eliminación de fechas fuera de rango válido
+
+2. **Validación de entidades:**
+   - Verificación de códigos de entidad válidos
+   - Eliminación de códigos especiales no aplicables
+
+3. **Normalización de variables categóricas:**
+   - Conversión de códigos especiales a valores nulos
+   - Validación de rangos de edad
+   - Aplicación de reglas de negocio específicas
+
+4. **Eliminación de duplicados:**
+   - Detección basada en combinaciones de campos clave
+   - Resolución de registros redundantes
+
+**Métricas de calidad agregadas:**
+- `quality_score`: puntuación basada en completitud de campos esenciales
+- `completeness_pct`: porcentaje de campos poblados
+- `has_death_data`: indicador de información de defunción
+- `has_severe_symptoms`: indicador de casos graves
+
+### Etapa 2: Limpieza de Datos de Texto
+
+**Reglas aplicadas:**
+- Eliminación de contenido insuficiente
+- Validación de rango temporal
+- Eliminación de duplicados
+- Normalización de metadatos
+
+### Etapa 3: Federación de Datos
+
+**Vista: `federation.unified_covid_data`**
+- Integración de casos individuales con catálogos
+- Columnas organizadas por categorías:
+  - Identificadores
+  - Variables categóricas
+  - Indicadores médicos
+  - Indicadores demográficos
+  - Comorbilidades
+  - Métricas de calidad
+
+**Vista: `federation.comprehensive_correlation`**
+- Agregación por fecha y entidad
+- Métricas calculadas:
+  - Conteos de casos por tipo
+  - Indicadores demográficos agregados
+  - Resumen de comorbilidades
+  - Métricas de calidad promedio
+  - Integración con datos de noticias
+
+## Análisis de Cobertura Representativa
+
+### Dimensiones Evaluadas
+
+#### Cobertura Temporal
+- Período completo de análisis
+- Días con datos disponibles
+- Continuidad de series temporales
+
+#### Cobertura Geográfica
+- Representación de entidades federativas
+- Distribución espacial de casos
+
+#### Cobertura Mediática
+- Disponibilidad de noticias por período
+- Correlación temporal con eventos epidemiológicos
+
+#### Distribución Demográfica
+- Representación por sexo
+- Distribución por grupos etarios
+- Comparación con demografía poblacional
 
 ## Instalación y Configuración
 
-#### Prerrequisitos
-- Docker y Docker Compose instalados
+### Requisitos Previos
+- Docker y Docker Compose
+- Python 3.10+
 - Git
 
-#### Descarga de Datos
+### Descarga de Datos
 
-**IMPORTANTE**: Los archivos de datos son demasiado grandes para GitHub (>1GB). Debes descargarlos por separado desde las fuentes oficiales:
+**IMPORTANTE:** Los archivos de datos no están incluidos en el repositorio. Deben descargarse de las fuentes oficiales:
 
-### 1. 📊 Datos Relacionales (COVID-19) - Secretaría de Salud México
+#### Datos Relacionales (CSV)
+**Fuente:** [Datos Abiertos - Secretaría de Salud](https://www.gob.mx/salud/documentos/datos-abiertos-152127)
 
-**Fuente Oficial**: [Datos Abiertos - Dirección General de Epidemiología](https://www.gob.mx/salud/documentos/datos-abiertos-152127)
+Archivos requeridos:
+- COVID19MEXICO2020.csv
+- COVID19MEXICO2021.csv
+- COVID19MEXICO2022.csv
+- COVID19MEXICO2023.csv
 
-**Enlaces de Descarga Directa:**
-   - [COVID19MEXICO2020.csv](https://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/historicos/2020/COVID19MEXICO2020.zip) (~620MB) - 3.8M registros
-   - [COVID19MEXICO2021.csv](https://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/historicos/2021/COVID19MEXICO2021.zip) (~1.4GB) - 8.8M registros  
-   - [COVID19MEXICO2022.csv](https://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/historicos/2022/COVID19MEXICO2022.zip) (~1.0GB) - 6.5M registros
-   - [COVID19MEXICO2023.csv](https://datosabiertos.salud.gob.mx/gobmx/salud/datos_abiertos/historicos/2023/COVID19MEXICO2023.zip) (~190MB) - 1.2M registros
+Ubicación: `data/relational/`
 
-**Ubicación en el proyecto**: `data/relational/`
+#### Datos de Series Temporales (CSV)
+**Fuente:** [COVID-19 Tablero México - CONACYT](https://datos.covid-19.conacyt.mx/)
 
-### 2. 📈 Datos de Series Temporales - CONACYT
+Archivos requeridos:
+- Casos_Diarios_Estado_Nacional_Confirmados_20230625.csv
+- Casos_Diarios_Estado_Nacional_Defunciones_20230625.csv
+- Casos_Diarios_Estado_Nacional_Negativos_20230625.csv
+- Casos_Diarios_Estado_Nacional_Sospechosos_20230625.csv
 
-**Fuente Oficial**: [COVID-19 Tablero México - CONACYT](https://datos.covid-19.conacyt.mx/)
+Ubicación: `data/graph/`
 
-**Portal de Descarga**: [Sección de Descargas CSV](https://datos.covid-19.conacyt.mx/#DownZCSV)
+#### Datos de Texto (Extracción Automática)
+**Fuente:** [UNAM Global - Cobertura Coronavirus](https://unamglobal.unam.mx/cobertura-coronavirus/)
 
-**Ubicación en el proyecto**: `data/graph/`
-
-### 3. 📰 Datos de Texto - UNAM Global
-
-**Fuente Oficial**: [UNAM Global - Cobertura Coronavirus](https://unamglobal.unam.mx/cobertura-coronavirus/)
-
-**Extracción Automática de Noticias**:
-
+Ejecutar script de extracción:
 ```bash
-# Ejecutar script de descarga automática (2020-2023)
 python init-scripts/download_covid_news.py
 ```
 
-**Ubicación en el proyecto**: `data/text/`
+Ubicación: `data/text/`
 
-#### Pasos de Instalación
+### Procedimiento de Instalación
 
-1. **Clonar el repositorio:**
+1. **Clonar repositorio:**
 ```bash
 git clone <repository-url>
 cd project
@@ -107,7 +284,6 @@ cd project
 
 2. **Configurar variables de entorno:**
 ```bash
-# Crear archivo .env en la raíz del proyecto
 cat > .env << EOF
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
@@ -117,132 +293,36 @@ POSTGRES_PASSWORD=password
 EOF
 ```
 
-3. **Iniciar la base de datos PostgreSQL con Apache AGE:**
+3. **Iniciar base de datos PostgreSQL con Apache AGE:**
 ```bash
-# Iniciar el contenedor de PostgreSQL
 docker-compose up -d
-
-# Verificar que el contenedor esté ejecutándose
-docker-compose ps
-
-# Ver logs del contenedor
-docker-compose logs postgres
+docker-compose logs -f postgres
 ```
 
-4. **Esperar a que la base de datos esté lista:**
+4. **Instalar dependencias de Python:**
 ```bash
-# Verificar conexión (opcional)
-docker-compose exec postgres psql -U postgres -d covid_analysis -c "SELECT version();"
-```
-
-5. **Instalar dependencias de Python:**
-```bash
-# Crear entorno virtual (recomendado)
 python -m venv venv
-source venv/bin/activate  # En Windows: venv\Scripts\activate
-
-# Instalar dependencias
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-6. **Ejecutar el pipeline de datos:**
+5. **Ejecutar pipeline de integración y validación:**
 ```bash
-# Ejecutar el notebook principal
 jupyter notebook notebooks/main_post.ipynb
-```
-
-#### Comandos Docker Útiles
-
-```bash
-# Iniciar servicios
-docker-compose up -d
-
-# Detener servicios
-docker-compose down
-
-# Reiniciar servicios
-docker-compose restart
-
-# Ver logs en tiempo real
-docker-compose logs -f postgres
-
-# Acceder al contenedor PostgreSQL
-docker-compose exec postgres psql -U postgres -d covid_analysis
-
-# Eliminar volúmenes (CUIDADO: elimina todos los datos)
-docker-compose down -v
-
-# Reconstruir contenedor
-docker-compose up -d --build
-
-# Ver estado de contenedores
-docker-compose ps
-
-# Ver uso de recursos
-docker stats
-```
-
-## 🔧 Scripts de Inicialización
-
-### Descarga Automática de Noticias (`init-scripts/download_covid_news.py`)
-
-Este script automatiza la extracción completa de noticias de COVID-19 desde UNAM Global:
-
-```bash
-# Ejecutar desde la raíz del proyecto
-python init-scripts/download_covid_news.py
-```
-
-**Características Técnicas:**
-- ✅ Extrae noticias de UNAM Global (enero 2020 - diciembre 2023)
-- ✅ Procesamiento automático de 48 meses de datos
-- ✅ Parsing inteligente de contenido HTML con BeautifulSoup4
-- ✅ Manejo robusto de errores y reintentos automáticos
-- ✅ User-Agent real para evitar bloqueos
-- ✅ Genera logs detallados del proceso con timestamps
-- ✅ Extracción de metadatos (título, autor, fecha, categorías)
-- ✅ Limpieza y estructuración de texto para análisis con LLMs
-
-**Archivos Generados:**
-- `data/text/1_2020.txt` hasta `data/text/12_2023.txt` (48 archivos)
-- Formato estructurado compatible con procesamiento de LLMs
-- Metadatos incluidos: autor, fecha publicación, categorías temáticas
-- Separadores claros entre artículos para análisis individual
-
-**Ejemplo de Estructura de Archivo Generado:**
-```
-=== ARTÍCULO 1 ===
-Título: [Título del artículo]
-Autor: [Nombre del autor]
-Fecha: [DD de Mes de YYYY]
-Categorías: [Cat1, Cat2, Cat3]
---- CONTENIDO ---
-[Contenido completo del artículo...]
-
-=== ARTÍCULO 2 ===
-[...]
 ```
 
 ## Uso del Sistema
 
-### 1. Inicialización Completa
+### Verificación del Estado del Sistema
 
 ```bash
-# 1. Iniciar base de datos
-docker-compose up -d
+# Verificar estado de contenedores
+docker-compose ps
 
-# 2. Descargar noticias (opcional)
-python init-scripts/download_covid_news.py
+# Conectar a PostgreSQL
+docker-compose exec postgres psql -U postgres -d covid_analysis
 
-# 3. Ejecutar pipeline de datos
-jupyter notebook notebooks/main_post.ipynb
-```
-
-### 2. Verificación del Sistema
-
-```bash
-# Verificar conexión a base de datos
-docker-compose exec postgres psql -U postgres -d covid_analysis -c "
+# Verificar conteo de registros por esquema
 SELECT 
     schemaname, 
     tablename, 
@@ -250,26 +330,36 @@ SELECT
 FROM pg_stat_user_tables 
 WHERE schemaname IN ('relational', 'graph', 'text', 'federation')
 ORDER BY schemaname, tablename;
-"
 ```
 
-## Esquema de Base de Datos
+## Estructura del Notebook Principal
 
-### Esquemas Organizados
-- **`relational`**: Datos de casos individuales COVID-19
-- **`graph`**: Datos de series temporales (Apache AGE)
-- **`text`**: Datos de noticias y análisis de texto
-- **`federation`**: Vistas unificadas para análisis
+El notebook `main_post.ipynb` implementa el siguiente flujo:
 
-### Logs y Monitoreo
+1. **Carga e Inspección de Datos**
+   - Conexión a PostgreSQL y configuración de extensiones
+   - Carga de archivos CSV anuales
+   - Inspección de catálogos y descriptores
 
-```bash
-# Ver logs de la base de datos
-docker-compose logs -f postgres
+2. **Transformación y Carga**
+   - Creación de tablas relacionales
+   - Construcción del grafo con Apache AGE
+   - Carga de noticias desde archivos de texto
 
-# Monitorear uso de recursos
-docker stats
+3. **Validación de Calidad de Datos**
+   - Validación de datos relacionales
+   - Validación de datos de grafo
+   - Validación de datos de texto
 
-# Verificar espacio en disco
-docker system df
-```
+4. **Análisis de Cobertura**
+   - Cobertura temporal, geográfica y demográfica
+   - Generación de dashboards interactivos
+
+5. **Limpieza de Datos**
+   - Aplicación de reglas de limpieza
+   - Creación de tablas limpias
+   - Agregación de métricas de calidad
+
+6. **Federación de Datos**
+   - Creación de vistas integradas
+   - Reporte final de calidad
