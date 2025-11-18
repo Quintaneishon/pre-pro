@@ -1,8 +1,8 @@
-# Sistema de Integración y Validación Multimodal de Datos COVID-19 en México
+# Sistema de Integración y Análisis Multimodal de Datos COVID-19 en México con Capacidades de Análisis de Sentimientos
 
 ## Descripción General
 
-Este proyecto implementa un sistema de integración de datos heterogéneos para el análisis epidemiológico de COVID-19 en México, combinando tres fuentes de datos complementarias: registros clínicos individuales (datos relacionales), series temporales agregadas por entidad federativa (datos de grafo), y cobertura mediática (datos de texto). El sistema incluye un marco de evaluación de calidad de datos, procesos de limpieza automatizados y estrategias de federación de datos para análisis integrados.
+Este proyecto implementa un sistema avanzado de integración de datos heterogéneos para el análisis epidemiológico de COVID-19 en México, combinando tres fuentes de datos complementarias: registros clínicos individuales (datos relacionales), series temporales agregadas por entidad federativa (datos de grafo), y cobertura mediática (datos de texto). El sistema incluye capacidades de análisis de sentimientos, generación automática de consultas mediante modelos de lenguaje (LLM), un marco de evaluación de calidad de datos, procesos de limpieza automatizados y estrategias de federación de datos para análisis integrados y predictivos.
 
 ## Marco Conceptual
 
@@ -65,32 +65,39 @@ Este proyecto implementa un sistema de integración de datos heterogéneos para 
 - OpenPyXL (lectura de catálogos en Excel)
 - BeautifulSoup4 (extracción de noticias)
 - Plotly (visualizaciones interactivas)
+- NLTK (procesamiento de lenguaje natural)
+- pysentimiento (análisis de sentimientos)
+- llama-cpp-python (integración con modelos LLM)
+- tqdm (barras de progreso)
 
 ## Estructura del Notebook Principal
 
 El notebook `main_post.ipynb` implementa el siguiente flujo:
 
 ### 1. Configuración e Instalación
-- Instalación de dependencias necesarias
+- Instalación de dependencias necesarias (incluye librerías de ML y NLP)
 - Configuración de conexiones a PostgreSQL
 - Configuración de extensiones Apache AGE
+- Inicialización de modelos de análisis de sentimientos
 
 ### 2. Carga e Inspección de Datos
 - Conexión a PostgreSQL y configuración de extensiones
-- Carga de archivos CSV anuales
+- Carga de archivos CSV anuales (2020-2023)
 - Inspección de catálogos y descriptores
 - Análisis de la información de la base de datos relacional
+- Limpieza de bases de datos existentes
 
 ### 3. Validación de Integridad de Datos
 - Comparación de entidades en catálogo vs entidades con casos COVID
 - Validación del rango de fechas
 - Verificación de consistencia temporal
+- Análisis de completitud de datos
 
 ### 4. Transformación y Carga de Datos
 - Creación de esquemas de base de datos relacional
-- Inserción de información relacional
-- Análisis de información de grafos
-- Transformación y carga de datos de series temporales
+- Inserción masiva de información relacional
+- Análisis y transformación de información de grafos
+- Carga de datos de series temporales
 - Validación de nombres de entidades
 - Creación de esquemas de grafos con Apache AGE
 
@@ -162,37 +169,51 @@ El notebook `main_post.ipynb` implementa el siguiente flujo:
 - Actualización de vistas con datos limpios
 - Generación de métricas de calidad agregadas
 
-### 8. Visualizaciones y Dashboards
+### 8. Sistema de Análisis de Sentimientos
+- Implementación de modelos de análisis de sentimientos para datos textuales
+- Clasificación automática de noticias por sentimiento (positivo, negativo, neutral)
+- Análisis de correlación entre sentimientos mediáticos y eventos epidemiológicos
+- Sistema de búsqueda de artículos basado en sentimientos
+- Evaluación de confianza en las predicciones de sentimiento
 
-#### 8.1 Dashboard de Calidad y Cobertura
+### 9. Generación Automática de Consultas con LLM
+- Integración con modelo Llama para procesamiento de lenguaje natural
+- Sistema de generación automática de consultas SQL
+- Análisis inteligente de preguntas descriptivas y predictivas
+- Procesamiento de consultas heterogéneas multi-fuente
+- Respuestas contextualizadas basadas en resultados de base de datos
+
+### 10. Visualizaciones y Dashboards
+
+#### 10.1 Dashboard de Calidad y Cobertura
 - Resumen general de cobertura por criterio
 - Cumplimiento de metas establecidas
 - Distribución demográfica
 - Calidad de datos por fuente
 
-#### 8.2 Métricas de Calidad de Datos
+#### 10.2 Métricas de Calidad de Datos
 - Dimensiones de calidad (Completitud, Validez, Consistencia)
 - Métricas por fuente de datos
 - Indicadores de integridad
 
-#### 8.3 Cobertura Geográfica
+#### 10.3 Cobertura Geográfica
 - Mapa de cobertura por estado
 - Distribución espacial de casos
 - Análisis de representatividad territorial
 
-#### 8.4 Evolución Temporal
+#### 10.4 Evolución Temporal
 - Timeline de cobertura temporal
 - Análisis de continuidad de datos
 - Identificación de gaps temporales
 
-#### 8.5 Comparación de Fuentes
+#### 10.5 Comparación de Fuentes
 - Métricas comparativas entre fuentes
 - Análisis de completitud y consistencia
 - Evaluación de cobertura por fuente
 
-### 9. Análisis de Preguntas de Negocio
+### 11. Análisis de Preguntas de Negocio
 
-#### 9.1 Preguntas Descriptivas
+#### 11.1 Preguntas Descriptivas
 - Evolución del número de casos confirmados por año y estado
 - Proporción de casos confirmados que resultaron en hospitalización
 - Distribución de comorbilidades entre casos positivos
@@ -204,17 +225,17 @@ El notebook `main_post.ipynb` implementa el siguiente flujo:
 - Municipios con mayor número de casos por entidad
 - Proporción de resultados positivos en pruebas de laboratorio vs antígeno
 
-#### 9.2 Preguntas Predictivas
-- Probabilidad de requerir UCI según comorbilidades
-- Factores que aumentan el riesgo de defunción
-- Estados con mayor probabilidad de repunte
-- Probabilidad de hospitalización según edad y sexo
-- Características clínicas que predicen necesidad de intubación
-- Probabilidad de hospitalización en pacientes migrantes
-- Factores predictivos de mortalidad en mujeres embarazadas
-- Probabilidad de positividad de pruebas según entidad y fecha
-- Municipios con mayor riesgo de saturación hospitalaria
-- Relación entre sentimientos en redes sociales y repunte de casos
+#### 11.2 Preguntas Predictivas
+- Modelos de regresión de Poisson para predicción de defunciones por estado
+- Extrapolación temporal para identificar estados en riesgo crítico
+- Simulación Monte Carlo para predicción de colapso hospitalario
+- Algoritmos de machine learning ensemble para progresión a estado crítico
+- Modelos epidemiológicos compartimentales (SIR/SEIR) para impacto de vacunación
+- Análisis de clustering y riesgo multivariado para saturación hospitalaria
+- Análisis de supervivencia de Kaplan-Meier para pacientes embarazadas
+- Modelos predictivos basados en análisis de sentimientos mediáticos
+- Modelos de crecimiento exponencial para capacidad hospitalaria
+- Regresión logística multivariada para mortalidad en población indígena
 
 ## Instalación y Configuración
 
@@ -222,6 +243,8 @@ El notebook `main_post.ipynb` implementa el siguiente flujo:
 - Docker y Docker Compose
 - Python 3.10+
 - Git
+- Modelo LLM Llama (se descarga automáticamente)
+- Espacio en disco: mínimo 10GB para modelos y datos
 
 ### Descarga de Datos
 
@@ -291,7 +314,13 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-5. **Ejecutar pipeline de integración y validación:**
+5. **Descargar modelo LLM (opcional, se descarga automáticamente en el notebook):**
+```bash
+# El modelo Llama se descarga automáticamente al ejecutar el notebook
+# Ubicación: models/llama-2-7b-chat.Q4_K_M.gguf
+```
+
+6. **Ejecutar pipeline de integración y análisis:**
 ```bash
 jupyter notebook notebooks/main_post.ipynb
 ```
@@ -317,7 +346,7 @@ WHERE schemaname IN ('relational', 'graph', 'text', 'federation')
 ORDER BY schemaname, tablename;
 ```
 
-## Resultados y Métricas
+## Resultados y Capacidades
 
 El sistema genera métricas de calidad y cobertura que incluyen:
 
@@ -327,5 +356,15 @@ El sistema genera métricas de calidad y cobertura que incluyen:
 - **Integridad referencial:** Validación de relaciones entre tablas
 - **Cobertura representativa:** Evaluación de representatividad geográfica, temporal y demográfica
 - **Calidad federada:** Métricas integradas de las tres fuentes de datos
+- **Análisis de sentimientos:** Clasificación automática de contenido mediático
+- **Generación automática de consultas:** Procesamiento de preguntas en lenguaje natural
 
-El notebook proporciona visualizaciones interactivas y dashboards que permiten evaluar la calidad de los datos y su adecuación para análisis epidemiológicos y de salud pública.
+### Capacidades Avanzadas
+
+- **Sistema de consultas inteligente:** Procesamiento automático de preguntas descriptivas y predictivas
+- **Análisis de sentimientos mediáticos:** Correlación entre cobertura mediática y eventos epidemiológicos
+- **Modelos de machine learning:** Implementación de algoritmos predictivos para análisis de riesgo
+- **Integración multimodal:** Federación de datos relacionales, temporales y textuales
+- **Visualizaciones interactivas:** Dashboards dinámicos para exploración de datos
+
+El notebook proporciona un sistema completo de análisis epidemiológico con capacidades de inteligencia artificial para la toma de decisiones en salud pública.
